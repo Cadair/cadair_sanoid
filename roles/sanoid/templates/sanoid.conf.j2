@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+
+{{ sanoid__datasets | to_ini }}
+
+{% for template, config in sanoid__templates.items() %}
+[template_{{ template}}]
+{{ config | to_toml }}
+{% endfor %}

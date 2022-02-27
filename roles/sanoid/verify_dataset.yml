@@ -1,0 +1,8 @@
+- zfs_facts:
+    dataset: "{{ dataset }}"
+    parsable: yes
+    type: filesystem
+  register: zfs
+
+- debug:
+    var: zfs
