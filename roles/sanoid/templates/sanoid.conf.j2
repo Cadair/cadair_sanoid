@@ -4,5 +4,5 @@
 
 {% for template, config in sanoid__templates.items() %}
 [template_{{ template}}]
-{{ config | to_toml }}
+{{ config | cadair.sanoid.to_toml }}
 {% endfor %}
