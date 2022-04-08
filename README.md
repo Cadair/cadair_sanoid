@@ -30,6 +30,7 @@ Tasks:
   - Generate a keypair on the controller?
   - Copy the required key parts to hosts dependent on push/pull.
 * Add a cron on initator to run syncoid with `--no-privilege-escalation`.
+* Add an option to not configure the source for a pull backup, i.e. Drew gives me an ssh key and I pull the backup.
 
 See rsnapshot debops role for inspiration on ssh key delegation.
 https://github.com/debops/debops/blob/master/ansible/roles/rsnapshot/tasks/main.yml#L87-L162
