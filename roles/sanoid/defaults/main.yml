@@ -10,4 +10,4 @@ sanoid__templates:
     autosnap: true
     autoprune: true
 
-ganoid__datasets:
+sanoid__datasets:
