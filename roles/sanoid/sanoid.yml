@@ -1,0 +1,31 @@
+---
+- name: Check that every dataset in sanoid__datasets exists on the host
+  community.general.zfs_facts:
+    dataset: "{{ dataset }}"
+    parsable: yes
+    type: filesystem
+  with_items: "{{ sanoid__datasets.keys() }}"
+  loop_control:
+    loop_var: dataset
+
+- name: Install sanoid
+  apt:
+    name: sanoid
+    state: present
+    update_cache: yes
+
+- name: Ensure config directory is present
+  file:
+    state: directory
+    path: /etc/sanoid
+
+- name: Template the sanoid configuration file
+  template:
+    src: templates/sanoid.conf.j2
+    dest: /etc/sanoid/sanoid.conf
+
+- name: Setup the cron job
+  cron:
+    name: sanoid
+    job: "/usr/sbin/sanoid --cron"
+    minute: "*/15"
