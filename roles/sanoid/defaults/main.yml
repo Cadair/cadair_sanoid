@@ -11,15 +11,3 @@ sanoid__templates:
     autoprune: true
 
 sanoid__datasets:
-
-# This host variable configures the sync jobs initiated by this host.
-syncoid__initiator_jobs: null
-#  name:
-#    source: user@remote:storage/wibble
-#    sink: storage/backups/wibble
-#    recursive: true
-#    syncoid_arguments:
-#      - "--compress"
-
-# This host variable configures the host to be a target for a syncoid job.
-syncoid__client_config: null

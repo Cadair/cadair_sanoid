@@ -1,14 +1,16 @@
-- name: Saniod
-  hosts: [ 'cadair_sanoid_hosts' ]
+- name: Syncoid
+  hosts: [ 'cadair_syncoid_hosts' ]
   become: True
 
   collections:
     - cadair.debops
+    - debops.debops
 
   environment: '{{ inventory__environment | d({})
                    | combine(inventory__group_environment | d({}))
                    | combine(inventory__host_environment  | d({})) }}'
 
   roles:
-    - role: cadair.sanoid.sanoid
-      tags: [ 'role::sanoid', 'skip::sanoid' ]
+    - role: secret
+    - role: cadair.sanoid.syncoid
+      tags: [ 'role::syncoid', 'skip::syncoid' ]

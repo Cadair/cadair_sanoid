@@ -1,0 +1,84 @@
+---
+# This file processes a single entry in the syncoid__initiator_jobs list
+- name: Determine if remote source or remote sink
+  set_fact:
+    remote_source: "{{ 'host' in job['source'] }}"
+    remote_sink: "{{ 'host' in job['sink'] }}"
+
+- name: Define connection strings for both local
+  set_fact:
+    source_connection: ""
+    sink_connection: ""
+    remote_connection: False
+    local_user: "{{ job['sink']['user'] | default(job['source']['user']) | default('root') }}"
+  when: not remote_source and not remote_sink | bool
+
+- name: Define connection strings for remote source
+  set_fact:
+    source_connection: "{{ job['source']['user'] }}@{{ job['source']['host'] }}"
+    sink_connection: ""
+    remote_connection: "{{ source_connection }}"
+    local_user: "{{ job['sink']['user'] | default('root') }}"
+  when: remote_source | bool
+
+- name: Define connection strings for remote sink
+  set_fact:
+    sink_connection: "{{ job['sink']['user'] }}@{{ job['sink']['host'] }}"
+    source_connection: ""
+    remote_connection: "{{ sink_connection }}"
+    local_user: "{{ job['source']['user'] | default('root') }}"
+  when: remote_sink | bool
+
+- name: Error out if both are remote
+  fail:
+    msg: "Both source and sink have hosts defined"
+  when: remote_source and remote_sink | bool
+
+- name: Error out if both are local and both have usernames
+  fail:
+    msg: "Both source and sink are local and both have usernames"
+  when: (not remote_source and not remote_sink) and ('user' in job['sink'] and 'user' in job['source']) | bool
+
+- name: Build dataset strings for both local source and sink
+  set_fact:
+    source_dataset_string: "{{ source_connection }}{{ job['source']['dataset'] }}"
+    sink_dataset_string: "{{ sink_connection }}{{ job['sink']['dataset'] }}"
+
+- name: Ensure local user exists
+  user:
+    name: "{{ local_user }}"
+    state: present
+  register: local_user_info
+
+- name: Copy ssh key priv key to initator
+  copy:
+    src: "{{ job['private_key_file'] }}"
+    dest: "{{ local_user_info['home'] }}/.ssh/"
+    owner: "{{ local_user }}"
+    mode: '0644'
+  register: ssh_priv_key_info
+  when: remote_sink or remote_source | bool
+
+- name: Verify that we can ssh into the remote sink machine with given username and ssh key
+  command: "ssh -q -i {{ ssh_priv_key_info.dest }} -o ConnectTimeout=5 {{ remote_connection }} 'exit 0'"
+  register: ssh_check_output
+  when: remote_connection | bool
+
+# - name: Do we have the correct permissions on the remote dataset?
+#   when: remote_connection | bool
+
+# - name: Set delegated permissions on local sink if user account is not root
+#   when: remote_connection | bool and remote_source
+
+# - name: Set delegated permissions on local source if user account is not root
+#   when: remote_connection | bool and remote_sink
+
+- name: Build syncoid arguments
+  set_fact:
+    syncoid_arguments: "{{ [' '] | product(job['syncoid_arguments']) | map('join') | list }}"
+
+- name: Generate cron task for syncoid
+  cron:
+    name: "sanoid {{ source_dataset_string }}->{{ sink_dataset_string }}"
+    job: "/usr/sbin/syncoid {{ source_dataset_string }} {{ sink_dataset_string }} {{ syncoid_arguments }} --sshkey {{ ssh_priv_key_info.dest }}"
+    minute: "*/15"

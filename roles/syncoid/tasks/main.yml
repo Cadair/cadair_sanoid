@@ -1,0 +1,9 @@
+---
+#- name: Run syncoid client setup
+
+# Run syncoid initiator
+- include_tasks: syncoid_initiator.yml
+  loop: "{{ syncoid__initiator_jobs }}"
+  loop_control:
+    loop_var: job
+

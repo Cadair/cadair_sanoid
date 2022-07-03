@@ -1,0 +1,18 @@
+# This host variable configures the sync jobs initiated by this host.
+syncoid__initiator_jobs: null
+  # - 
+  #   source:
+  #     user: user
+  #     host: remote
+  #     dataset: storage/wibble
+  #   sink:
+  #     dataset: storage/backups/wibble
+  #   syncoid_arguments:
+  #     - "--compress"
+  #   ssh_private_key_file:
+  #   local_user_account: # (default root)
+  #   replication_frequency:
+
+
+# This host variable configures the host to be a target for a syncoid job.
+syncoid__client_config: null
