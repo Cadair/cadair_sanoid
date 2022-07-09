@@ -2,9 +2,6 @@
   hosts: [ 'cadair_sanoid_hosts' ]
   become: True
 
-  collections:
-    - cadair.debops
-
   environment: '{{ inventory__environment | d({})
                    | combine(inventory__group_environment | d({}))
                    | combine(inventory__host_environment  | d({})) }}'
