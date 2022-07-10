@@ -4,6 +4,7 @@
   set_fact:
     remote_source: "{{ 'host' in job['source'] }}"
     remote_sink: "{{ 'host' in job['sink'] }}"
+    local_user: "{{ job['local_user_account'] | default('root') }}"
 
 - name: Define connection strings for both local
   set_fact:
@@ -11,21 +12,18 @@
     sink_connection: ""
     remote_connection: False
     remote_connection_dict: False
-    local_user: "{{ job['sink']['user'] | default(job['source']['user']) | default('root') }}"
   when: not remote_source and not remote_sink | bool
 
 - name: Define connection strings for remote source
   set_fact:
     source_connection: "{{ job['source']['user'] }}@{{ job['source']['host'] }}"
     sink_connection: ""
-    local_user: "{{ job['sink']['user'] | default('root') }}"
   when: remote_source | bool
 
 - name: Define connection strings for remote sink
   set_fact:
     sink_connection: "{{ job['sink']['user'] }}@{{ job['sink']['host'] }}"
     source_connection: ""
-    local_user: "{{ job['source']['user'] | default('root') }}"
   when: remote_sink | bool
 
 - name: Define connection strings for remote source
@@ -79,24 +77,17 @@
 
 - name: Ensure ssh host key known
   lineinfile:
-    dest: ~/.ssh/known_hosts
+    dest: "{{ local_user_info['home'] }}/.ssh/known_hosts"
     create: yes
     state: present
     line: "{{ lookup('pipe', 'ssh-keyscan -trsa ' + remote_connection_dict.host ) }}"
+  become_user: "{{ local_user }}"
 
 - name: Verify that we can ssh into the remote sink machine with given username and ssh key
   command: "ssh -q -i {{ ssh_priv_key_info.dest }} -o ConnectTimeout=5 {{ remote_connection }} 'exit 0'"
   register: ssh_check_output
+  become_user: "{{ local_user }}"
   when: remote_connection | bool
-
-# - name: Do we have the correct permissions on the remote dataset?
-#   when: remote_connection | bool
-
-# - name: Set delegated permissions on local sink if user account is not root
-#   when: remote_connection | bool and remote_source
-
-# - name: Set delegated permissions on local source if user account is not root
-#   when: remote_connection | bool and remote_sink
 
 - name: Build syncoid arguments
   set_fact:
@@ -109,4 +100,4 @@
     job: "/usr/sbin/syncoid {{ source_dataset_string }} {{ sink_dataset_string }} {{ syncoid_arguments }} --sshkey {{ ssh_priv_key_info.dest }}"
     minute: "*/15"
     cron_file: "syncoid"
-    user: "root"
+    user: "{{ local_user }}"

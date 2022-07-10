@@ -1,18 +1,27 @@
 # This host variable configures the sync jobs initiated by this host.
-syncoid__initiator_jobs: null
+syncoid__initiator_jobs: []
   # - 
   #   source:
   #     user: user
   #     host: remote
-  #     dataset: storage/wibble
+  #     dataset: tank/wibble
   #   sink:
-  #     dataset: storage/backups/wibble
+  #     dataset: tank/backups/wibble
   #   syncoid_arguments:
   #     - "--compress"
   #   ssh_private_key_file:
+  #   # Note on linux for pull backups local_user_account not being root I don't
+  #   # think will work as you can't delegate mountpoint permissions
   #   local_user_account: # (default root)
   #   replication_frequency:
 
 
 # This host variable configures the host to be a target for a syncoid job.
-syncoid__client_config: null
+syncoid__client_config: []
+  # -
+  #   user: user
+  #   ssh_public_key:
+  #   source_datasets:
+  #     - tank/wibble
+  #   sink_datasets:
+  #     - tank/backups/wibble

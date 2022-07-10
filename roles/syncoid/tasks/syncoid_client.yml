@@ -1,0 +1,33 @@
+---
+# This file processes a single entry in the syncoid__client_jobs list
+# - name: Create and configure user account
+
+# - name: Add ssh public key to user
+#   when: "ssh_public_key" in job
+
+- name: Delegate zfs permissions on source datasets
+  community.general.zfs_delegate_admin:
+    name: "{{ dataset }}"
+    users: "{{ job['user'] }}"
+    permissions:
+      - send
+      - hold
+      - snapshot
+      - destroy
+  loop: "{{ job['source_datasets'] | default([]) }}"
+  loop_control:
+    loop_var: dataset
+
+- name: Delegate zfs permissions on sink datasets
+  community.general.zfs_delegate_admin:
+    name: "{{ dataset }}"
+    users: "{{ job['user'] }}"
+    permissions:
+      - create
+      - mount
+      - receive
+      - rollback
+      - destroy
+  loop: "{{ job['sink_datasets'] | default([]) }}"
+  loop_control:
+    loop_var: dataset
