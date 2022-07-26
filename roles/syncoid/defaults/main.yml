@@ -20,7 +20,7 @@ syncoid__initiator_jobs: []
 syncoid__client_config: []
   # -
   #   user: user
-  #   ssh_public_key:
+  #   ssh_public_key_file:
   #   source_datasets:
   #     - tank/wibble
   #   sink_datasets:

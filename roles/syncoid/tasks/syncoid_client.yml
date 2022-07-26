@@ -1,19 +1,35 @@
 ---
 # This file processes a single entry in the syncoid__client_jobs list
-# - name: Create and configure user account
+- name: Attempt to install optional deps
+  package:
+    name:
+      - mbuffer
+      - lzop
+  ignore_errors: yes
 
-# - name: Add ssh public key to user
-#   when: "ssh_public_key" in job
+- name: Create and configure user account
+  user:
+    name: "{{ job.user }}"
+    shell: /bin/bash
+  when: '"user" in job'
+
+- name: Add ssh public key to user
+  ansible.posix.authorized_key:
+    user: "{{ job.user }}"
+    state: present
+    key: "{{ lookup('file', job.ssh_public_key_file) }}"
+  when: '"ssh_public_key_file" in job'
 
 - name: Delegate zfs permissions on source datasets
   community.general.zfs_delegate_admin:
     name: "{{ dataset }}"
-    users: "{{ job['user'] }}"
+    users: "{{ job.user }}"
     permissions:
       - send
       - hold
       - snapshot
       - destroy
+      - mount
   loop: "{{ job['source_datasets'] | default([]) }}"
   loop_control:
     loop_var: dataset
@@ -21,7 +37,7 @@
 - name: Delegate zfs permissions on sink datasets
   community.general.zfs_delegate_admin:
     name: "{{ dataset }}"
-    users: "{{ job['user'] }}"
+    users: "{{ job.user }}"
     permissions:
       - create
       - mount
