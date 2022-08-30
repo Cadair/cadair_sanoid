@@ -48,17 +48,23 @@
     msg: "Both source and sink are local and both have usernames"
   when: (not remote_source and not remote_sink) and ('user' in job['sink'] and 'user' in job['source']) | bool
 
-- name: Build dataset strings for both local source and sink
+- name: Build dataset strings for remote source and local sink
   set_fact:
     source_dataset_string: "{{ source_connection }}:{{ job['source']['dataset'] }}"
     sink_dataset_string: "{{ sink_connection }}{{ job['sink']['dataset'] }}"
   when: source_connection
 
-- name: Build dataset strings for both local source and sink
+- name: Build dataset strings for remote sink and local source
   set_fact:
     source_dataset_string: "{{ source_connection }}{{ job['source']['dataset'] }}"
     sink_dataset_string: "{{ sink_connection }}:{{ job['sink']['dataset'] }}"
   when: sink_connection
+
+- name: Build dataset strings for local source and local sink
+  set_fact:
+    source_dataset_string: "{{ job['source']['dataset'] }}"
+    sink_dataset_string: "{{ job['sink']['dataset'] }}"
+  when: (not sink_connection and not source_connection) | bool
 
 - name: Ensure local user exists
   user:
@@ -82,6 +88,7 @@
     state: present
     line: "{{ lookup('pipe', 'ssh-keyscan -trsa ' + remote_connection_dict.host ) }}"
   become_user: "{{ local_user }}"
+  when: remote_connection | bool
 
 - name: Verify that we can ssh into the remote sink machine with given username and ssh key
   command: "ssh -q -i {{ ssh_priv_key_info.dest }} -o ConnectTimeout=5 {{ remote_connection }} 'exit 0'"
@@ -91,13 +98,18 @@
 
 - name: Build syncoid arguments
   set_fact:
-    syncoid_arguments: "{{ job['syncoid_arguments'] | join(' ') }}"
+    syncoid_arguments: "{{ job['syncoid_arguments'] | default([]) }}"
     job_name: "syncoid-{{ source_dataset_string }}-{{ sink_dataset_string }}"
+
+- name: Add sshkey argument if specified
+  set_fact:
+    syncoid_arguments: "{{ syncoid_arguments + ['--sshkey', ssh_priv_key_info.dest] }}"
+  when: ssh_priv_key_info.dest is defined
 
 - name: Generate cron task for syncoid
   cron:
     name: "{{ job_name | regex_replace('\/', '_') }}"
-    job: "/usr/sbin/syncoid {{ source_dataset_string }} {{ sink_dataset_string }} {{ syncoid_arguments }} --sshkey {{ ssh_priv_key_info.dest }}"
+    job: "/usr/sbin/syncoid {{ source_dataset_string }} {{ sink_dataset_string }} {{ syncoid_arguments | join(' ') }}"
     minute: "*/15"
     cron_file: "syncoid"
     user: "{{ local_user }}"
