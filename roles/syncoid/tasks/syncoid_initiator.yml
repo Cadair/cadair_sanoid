@@ -109,7 +109,7 @@
 - name: Generate cron task for syncoid
   cron:
     name: "{{ job_name | regex_replace('\/', '_') }}"
-    job: "/usr/sbin/syncoid {{ source_dataset_string }} {{ sink_dataset_string }} {{ syncoid_arguments | join(' ') }}"
+    job: "{{ job.pre_cron_commands | default('') }} /usr/sbin/syncoid {{ source_dataset_string }} {{ sink_dataset_string }} {{ syncoid_arguments | join(' ') }} {{ job.post_cron_commands | default('') }}"
     minute: "*/15"
     cron_file: "syncoid"
     user: "{{ local_user }}"
