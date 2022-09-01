@@ -38,6 +38,7 @@
   community.general.zfs_delegate_admin:
     name: "{{ dataset }}"
     users: "{{ job.user }}"
+    recursive: "{{ job.recursive | default(false) }}"
     permissions:
       - create
       - mount

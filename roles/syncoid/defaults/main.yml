@@ -21,6 +21,7 @@ syncoid__client_config: []
   # -
   #   user: user
   #   ssh_public_key_file:
+  #   recursive: false
   #   source_datasets:
   #     - tank/wibble
   #   sink_datasets:
