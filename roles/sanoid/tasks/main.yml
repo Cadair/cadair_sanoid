@@ -27,5 +27,7 @@
 - name: Setup the cron job
   cron:
     name: sanoid
+    cron_file: sanoid
+    user: root
     job: "/usr/sbin/sanoid --cron"
     minute: "*/15"
