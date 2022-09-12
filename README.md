@@ -6,6 +6,14 @@ Sanoid takes and manages snapshots, it has a toml config file specifying one or 
 
 ## Syncoid
 
+### Running todo list
+
+All basic functionality is working. Improvements for stability:
+
+* Change from using cron to using systemd timers so that you don't get multiple sanoids running at once.
+* Install sanoid from git so we can use the lastest release and get around invalid locks.
+* Stagger the timings of the syncoid jobs
+
 ### Design Notes
 
 Syncoid has a source and a sink (where you replicate data from the source to the sink), but you can do this in either push (where the source ssh's to the sink) or pull (where the sink ssh's to the source).
