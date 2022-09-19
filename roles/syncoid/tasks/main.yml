@@ -1,10 +1,4 @@
 ---
-- name: Install sanoid
-  apt:
-    name: sanoid
-    state: present
-    update_cache: yes
-
 # Run syncoid client setup
 - include_tasks: syncoid_client.yml
   loop: "{{ syncoid__client_config }}"

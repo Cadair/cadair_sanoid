@@ -1,0 +1,65 @@
+# If install from repos
+- name: Install sanoid from debian repo
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  when: "sanoid_install__installation_source == 'repository'"
+  loop: "{{ sanoid_install__repository_packages }}"
+
+# If install from upstream
+# Clone repo
+- name: Install pre-requisites
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  when: "sanoid_install__installation_source == 'git'"
+  loop: "{{ sanoid_install__git_prerequisites }}"
+
+- name: Clone repository
+  git:
+    repo: "{{ sanoid_install__upstream_git_repository }}"
+    dest: "{{ sanoid_install__clone_location }}"
+    version: "v{{ sanoid_install__upstream_version }}"
+    update: true
+    force: true
+  when: "sanoid_install__installation_source == 'git'"
+
+# Build debian package
+- name: Link in the debian package to the source tree
+  ansible.builtin.file:
+    state: link
+    src: "{{ sanoid_install__clone_location }}/packages/debian"
+    dest: "{{ sanoid_install__clone_location }}/debian"
+  when: "sanoid_install__installation_source == 'git'"
+
+- name: Build a debian package
+  ansible.builtin.command:
+    argv:
+      - "dpkg-buildpackage"
+      - "-uc"
+      - "-us"
+    chdir: "{{ sanoid_install__clone_location }}"
+  when: "sanoid_install__installation_source == 'git'"
+
+# Install debian package
+- name: Install built package
+  ansible.builtin.apt:
+    deb: "{{ sanoid_install__clone_location }}/../sanoid_{{ sanoid_install__upstream_version }}_all.deb"
+  when: "sanoid_install__installation_source == 'git'"
+
+- name: Ansible delete file wildcard
+  find:
+    paths:
+      - "{{ sanoid_install__clone_location }}/../"
+    patterns:
+      - "sanoid_*.*"
+    use_regex: false
+  register: wildcard_files_to_delete
+
+- name: Ansible remove built files
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ wildcard_files_to_delete.files }}"

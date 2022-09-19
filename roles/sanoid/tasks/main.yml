@@ -8,12 +8,6 @@
   loop_control:
     loop_var: dataset
 
-- name: Install sanoid
-  apt:
-    name: sanoid
-    state: present
-    update_cache: yes
-
 - name: Ensure config directory is present
   file:
     state: directory

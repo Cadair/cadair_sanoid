@@ -1,0 +1,18 @@
+sanoid_install__installation_source: 'repository'  # or 'git'
+sanoid_install__repository_packages:
+  - sanoid
+  - pv
+  - lzop
+  - mbuffer
+sanoid_install__upstream_git_repository: 'https://github.com/jimsalterjrs/sanoid.git'
+sanoid_install__upstream_version: '2.1.0'
+sanoid_install__clone_location: "/src/sanoid"
+sanoid_install__git_prerequisites:
+  - git
+  - debhelper
+  - libcapture-tiny-perl
+  - libconfig-inifiles-perl
+  - pv
+  - lzop
+  - mbuffer
+  - build-essential
