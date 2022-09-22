@@ -14,6 +14,7 @@ syncoid__initiator_jobs: []
   #   # think will work as you can't delegate mountpoint permissions
   #   local_user_account: # (default root)
   #   replication_frequency:
+  #   cron_minute: "*/15"
 
 
 # This host variable configures the host to be a target for a syncoid job.
