@@ -18,10 +18,26 @@
     src: templates/sanoid.conf.j2
     dest: /etc/sanoid/sanoid.conf
 
-- name: Setup the cron job
+- name: Gathering Service Facts
+  command: systemctl list-units
+  register: systemd_units
+
+- set_fact:
+    use_systemd_timer: "{{ 'sanoid.timer' in systemd_units.stdout }}"
+
+- name: Handle sanoid cron job (enabled if sanoid.timer dosen't exist)
   cron:
     name: sanoid
     cron_file: sanoid
     user: root
     job: "/usr/bin/flock /var/run/sanoid.flock /usr/sbin/sanoid --cron"
     minute: "*/15"
+    state: "{{ 'absent' if use_systemd_timer else 'present' }}"
+
+- name:
+  systemd:
+    name: sanoid.timer
+    state: started
+    enabled: true
+    daemon_reload: true
+  when: use_systemd_timer
