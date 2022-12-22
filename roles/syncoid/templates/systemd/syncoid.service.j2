@@ -4,8 +4,9 @@ Requires=zfs.target
 After=zfs.target
 
 [Service]
+User={{ local_user }}
 Environment=TZ=UTC
-Type=oneshot
+Type=simple
 ExecStart=/usr/sbin/syncoid {{ source_dataset_string }} {{ sink_dataset_string }} {{ syncoid_arguments | join(' ') }}
 ExecStartPre={{ job.pre_cron_commands | default('') }}
 ExecStartPost={{ job.post_cron_commands | default('') }}
