@@ -120,17 +120,26 @@
     src: templates/systemd/syncoid.service.j2
     dest: "/etc/systemd/system/{{ job_name | regex_replace('\/', '_') | regex_replace(':', '_')}}.service"
   when: job.systemd_timer_calendar is defined
+  register: syncoid_service_t
 
 - name: Template syncoid timer
   template:
     src: templates/systemd/syncoid.timer.j2
     dest: "/etc/systemd/system/{{ job_name | regex_replace('\/', '_') | regex_replace(':', '_')}}.timer"
   when: job.systemd_timer_calendar is defined
+  register: syncoid_timer_t
 
-- name:
+- name: Restart the syncoid Timer
   systemd:
     name: "{{ job_name | regex_replace('\/', '_') | regex_replace(':', '_')}}.timer"
-    state: started
+    state: restarted
     enabled: true
     daemon_reload: true
-  when: job.systemd_timer_calendar is defined
+  when: syncoid_timer_t.changed
+
+- name: Restart the syncoid service
+  systemd:
+    name: "{{ job_name | regex_replace('\/', '_') | regex_replace(':', '_')}}.timer"
+    state: reloaded
+    daemon_reload: true
+  when: syncoid_service_t.changed

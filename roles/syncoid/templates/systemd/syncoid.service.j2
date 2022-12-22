@@ -7,6 +7,8 @@ After=zfs.target
 User={{ local_user }}
 Environment=TZ=UTC
 Type=simple
+Restart=on-failure
+RestartSec=5
 ExecStart=/usr/sbin/syncoid {{ source_dataset_string }} {{ sink_dataset_string }} {{ syncoid_arguments | join(' ') }}
 ExecStartPre={{ job.pre_cron_commands | default('') }}
 ExecStartPost={{ job.post_cron_commands | default('') }}
